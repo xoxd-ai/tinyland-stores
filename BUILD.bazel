@@ -12,7 +12,6 @@ load("@aspect_rules_js//npm:defs.bzl", "npm_link_package", "npm_package")
 load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
 load("@tummycrypt_tinyland_stores_npm//:defs.bzl", "npm_link_all_packages")
 load("@tummycrypt_tinyland_stores_npm//:vitest/package_json.bzl", vitest_bin = "bin")
-load("@tummycrypt_tinyland_stores_npm//:@sveltejs/package/package_json.bzl", svelte_package = "bin")
 load("@tummycrypt_tinyland_stores_npm//:svelte-check/package_json.bzl", svelte_check = "bin")
 
 # =============================================================================
