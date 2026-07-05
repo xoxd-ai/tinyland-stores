@@ -7,7 +7,7 @@ Uses svelte-package instead of plain tsc.
   Standalone: cd packages/tinyland-stores && pnpm build
 """
 
-load("@aspect_rules_js//js:defs.bzl", "js_library", "js_run_binary")
+load("@aspect_rules_js//js:defs.bzl", "js_binary", "js_library", "js_run_binary")
 load("@aspect_rules_js//npm:defs.bzl", "npm_link_package", "npm_package")
 load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
 load("@tummycrypt_tinyland_stores_npm//:defs.bzl", "npm_link_all_packages")
@@ -41,8 +41,23 @@ npm_link_package(
     src = "@tummycrypt_tinyland_a11y_engine//:pkg",
 )
 
-svelte_package.svelte_package_binary(
+# Self-anchoring svelte-package wrapper (TIN-1721). The raw
+# svelte_package.svelte_package_binary resolved `-i src` relative to
+# process.cwd(), which rules_js sets to $(BINDIR) with no chdir. That works when
+# stores is the ROOT package (standalone `bazel build //:pkg`, src at
+# $(BINDIR)/src) but breaks when stores is an EXTERNAL registry module under RBE
+# (src lands at $(BINDIR)/external/<repo>+/src while cwd stays $(BINDIR), so
+# `-i src` misses). build-svelte.mjs chdir's to its own copied-to-bin package dir
+# (import.meta.url) before delegating to @sveltejs/package, so `-i src` / `-o dist`
+# resolve correctly in both layouts.
+js_binary(
     name = "svelte_package",
+    entry_point = "build-svelte.mjs",
+    data = [
+        ":node_modules/@sveltejs/package",
+        ":node_modules/typescript",
+        ":node_modules/svelte",
+    ],
     visibility = ["//visibility:public"],
 )
 
@@ -110,7 +125,7 @@ npm_package(
         ":tinyland_stores",
     ],
     package = "@tummycrypt/tinyland-stores",
-    version = "0.3.0",
+    version = "0.3.1",
     visibility = ["//visibility:public"],
 )
 
